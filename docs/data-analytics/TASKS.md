@@ -106,10 +106,10 @@ DoD เฉพาะ task: TSK-05 = "ไฟล์ผิดไม่ถูก inge
 | TSK-11 | `{{DASHBOARD_DEVELOPER}}` | `null` | `done` | `dashboard/app.py` (3 routes, project dropdown, header); Flask test client + server จริง |
 | TSK-12 | `{{DASHBOARD_DEVELOPER}}` | `null` | `in_progress` | โค้ด+test ครบ; การตรวจด้วยตา: screenshot ครั้งเดียว ยังไม่ตรวจ dark theme / colorblind |
 | TSK-13 | `{{DASHBOARD_DEVELOPER}}` | `null` | `in_progress` | โค้ด+test (grid reconcile กับ metrics) ครบ; AG Grid ยังไม่ตรวจด้วยตา |
-| TSK-14 | `{{DASHBOARD_DEVELOPER}}` | `null` | `done` | แผง CH-12 (`cards.dq_panel`); ไม่แสดง `record_key`/`message` |
+| TSK-14 | `{{DASHBOARD_DEVELOPER}}` | `null` | `done` | แผง CH-12 (`cards.dq_panel`) สร้างและทดสอบแล้ว แต่ **ถอดออกจากหน้า Overview ตามคำสั่งผู้ใช้ 2026-10-02** (provenance ยังแสดงที่ header); ไม่แสดง `record_key`/`message` |
 | TSK-15 | `{{DATA_ENGINEER}}` + `{{DASHBOARD_DEVELOPER}}` | `null` | `done` | idempotency, latest-run, empty state, bad filter, DB lock (exit 3), ruff สะอาด ณ เวลาที่เขียน; ยังไม่มี browser e2e/CI |
 | TSK-16 | `{{DATA_STEWARD}}` | `null` | `done` | root `README.md` อัปเดตตามความจริง (รอบ reconcile 2026-10-02) รวมหัวข้อ Docker (`Dockerfile`, `docker-compose.yml`, `docker/entrypoint.sh` — ยืนยันบน Docker 29.8.1; นอก task เดิม เป็นงานเสริม) |
-| TSK-17 | `{{DATA_ENGINEER}}` | `null` | `done` | `src/ai/*` (httpx, prompt `exec-summary-v2`, caps, `seq_summary_id`); **mocked HTTP เท่านั้น — ไม่เคยเรียก OpenRouter จริง**; open: PDPA/residency, guardrail ของ workspace |
+| TSK-17 | `{{DATA_ENGINEER}}` | `null` | `done` | `src/ai/*` (httpx, prompt `exec-summary-v2`, caps, `seq_summary_id`); pytest ใช้ mocked HTTP เท่านั้น แต่เรียก OpenRouter จริงสำเร็จ 2 ครั้ง (2026-10-02; All Projects และ `P01 - Network VA`, ~21-25 วินาที, บันทึกลง `executive_summaries` และแสดงซ้ำหลัง reload; ตัวเลขตรง DB; พบ wording slip "14,013 action_name"); open: PDPA/residency, guardrail ของโมเดลอื่น, EV-01..EV-05 ยังไม่ได้รัน, audit event `ai_context_send` เป็น log-only |
 | TSK-18 | `{{DATA_ENGINEER}}` | `null` | `done` | หน้า `/executive-summary`; ปุ่มปิดเมื่อไม่มี env; ทดสอบด้วย mock |
 | TSK-19 | `{{PROJECT_MANAGER}}` | `null` | `done` | แทนด้วยเอกสาร 23 ฉบับใน `docs/data-analytics/` (plan §18 เลิกใช้ประเด็น minimum list); central requirement จริงยังไม่ทราบ และไม่มี independent review ของเอกสาร |
 
@@ -131,4 +131,4 @@ enum นี้นิยามที่เอกสารนี้ที่เด
 
 1. ทีม/คนที่รับผิดชอบจริงและหน่วย/ขนาดประมาณการ (แทน role placeholder)
 2. KPI owner/target (KPI-01..03 ยัง candidate; ผลต่อความเป็น P0)
-3. Central minimum DDD requirement (TSK-19) และ open item ของ TSK-17: PDPA classification ของ `owner`/`action_name` + data residency (OpenRouter -> Anthropic) รอ `{{DPO_OR_LEGAL}}`, และ guardrail ของ OpenRouter workspace (อนุญาตเฉพาะ `anthropic/claude-sonnet-5` — ยังไม่ยืนยันกับ key ของโปรเจกต์นี้)
+3. Central minimum DDD requirement (TSK-19) และ open item ของ TSK-17: PDPA classification ของ `owner`/`action_name` + data residency (OpenRouter -> Anthropic) รอ `{{DPO_OR_LEGAL}}`, และ guardrail ของ OpenRouter workspace (อนุญาตเฉพาะ `anthropic/claude-sonnet-5` — ยืนยันกับ key ของโปรเจกต์นี้เฉพาะโมเดลนี้เมื่อ 2026-10-02; โมเดลอื่นยังไม่ตรวจ)

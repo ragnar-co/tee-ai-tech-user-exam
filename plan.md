@@ -1416,9 +1416,9 @@ every displayed overdue record reconciles with SQL
 
 ## Phase 7 — Data Quality Display
 
-- [x] display validation summary
-- [x] display row counts
-- [x] display duplicate/invalid findings
+- [ ] display validation summary — ถอดแผง CH-12 ออกจากหน้าตามคำสั่งผู้ใช้ (2026-10-02); component `cards.dq_panel` ยังอยู่แต่ไม่ได้ต่อกับหน้า
+- [ ] display row counts — ถอดแผง CH-12 ออกจากหน้าตามคำสั่งผู้ใช้ (2026-10-02); component `cards.dq_panel` ยังอยู่แต่ไม่ได้ต่อกับหน้า
+- [ ] display duplicate/invalid findings — ถอดแผง CH-12 ออกจากหน้าตามคำสั่งผู้ใช้ (2026-10-02); component `cards.dq_panel` ยังอยู่แต่ไม่ได้ต่อกับหน้า
 - [x] display source file/run info
 
 Exit:
@@ -1432,13 +1432,13 @@ user knows which source snapshot drives dashboard
 - [x] define provider interface
 - [x] add provider implementation (OpenRouter, OpenAI-compatible HTTPS, `anthropic/claude-sonnet-5`, env `OPENAI_API_KEY`/`OPENAI_BASE_URL`)
 - [x] add prompt version
-- [x] generate draft  _(ยืนยันด้วย mocked HTTP เท่านั้น)_
+- [x] generate draft  _(pytest ใช้ mocked HTTP; เรียก OpenRouter จริงสำเร็จ 2 ครั้ง 2026-10-02)_
 - [x] save summary
 - [x] retrieve latest summary
 - [x] add Dash page
 - [x] failure handling
 - [x] tests with mocked provider
-- [ ] เรียก OpenRouter จริงด้วย key จริงสำเร็จ  _(ยังไม่เคยทำ)_
+- [x] เรียก OpenRouter จริงด้วย key จริงสำเร็จ  _(2026-10-02, 2 ครั้งผ่านปุ่ม Generate; ยังไม่ได้ประเมิน EV-01..EV-05)_
 
 Exit:
 AI summary can be generated, persisted and displayed

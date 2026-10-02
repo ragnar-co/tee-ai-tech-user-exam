@@ -37,7 +37,7 @@ from src.db import connect_readonly, connect_writer
 
 OWNER_CHART_TOP_N = 10  # CH-16 N (docs: null = calibrate later); small interim default
 PAGES = (("/", "Portfolio Overview"), ("/overdue", "Overdue Actions"),
-         ("/executive-summary", "Executive Summary (draft)"))
+         ("/executive-summary", "Executive Summary"))
 PAGE_IDS = {"/": "page-overview", "/overdue": "page-overdue", "/executive-summary": "page-exec"}
 
 # duckdb refuses a second connection with a different config in one process, so every DB touch
@@ -189,7 +189,6 @@ def create_app(db_path=None, provider: ExecutiveSummaryProvider | None = None) -
         with _DB_LOCK:
             run = metrics.get_run_info(db)
             projects = metrics.list_projects(db)
-            dq = metrics.data_quality_summary(db)
         return html.Div(
             [
                 dcc.Location(id="url"),
@@ -205,8 +204,7 @@ def create_app(db_path=None, provider: ExecutiveSummaryProvider | None = None) -
                                             options=[{"label": "Show composition (stacked) view "
                                                       "- intermediate", "value": "stacked"}],
                                             className="check-inline"),
-                              html.Div(id="ov-charts"), html.Div(id="ov-table"),
-                              cards.dq_panel(dq)], id="page-overview"),
+                              html.Div(id="ov-charts"), html.Div(id="ov-table")], id="page-overview"),
                     html.Div([html.Div(id="od-kpi"), html.Div(id="od-charts"),
                               html.Div(id="od-grid")], id="page-overdue"),
                     html.Div(dcc.Loading(exec_view(None, False, svc), id="exec-loading"),

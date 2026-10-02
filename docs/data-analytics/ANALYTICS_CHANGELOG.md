@@ -113,6 +113,7 @@ Delivering Task: MET-07/MET-08 -> TSK-20; project filter -> TSK-08, TSK-12, TSK-
 | 2026-10-02 | `pipeline logic` | PL-02 context field caps | ส่งค่าข้อความตามต้นทาง | `action_name`/`owner`/`project_name` ตัด control character และจำกัด 200 ตัวอักษร; `AI_TOP_N` default 10; `AI_TIMEOUT_SECONDS` default 60; `summary_id` จาก sequence `seq_summary_id` | TSK-17 | `null` | false |
 | 2026-10-02 | `metric definition` | Q-OVERDUE-DETAIL ORDER BY | `days_overdue DESC, due_date ASC` | เพิ่ม `action_id ASC` เป็น tie-break (ไม่เปลี่ยนค่า metric; ผลเรียงคงที่) | TSK-08 | `null` | false |
 | 2026-10-02 | `dashboard` | CH-10 แกน; CH-14 source | แกนไม่ระบุตายตัว; CH-14 อ้าง Q-BY-OWNER | CH-10 แกน 0–100%; CH-14 (MET-07) อ่านจาก Q-PORTFOLIO | TSK-12, TSK-13 | `null` | false |
+| 2026-10-02 | `dashboard` | CH-12 Run & validation summary | แผงแสดงบนหน้า Overview | ถอดออกจากหน้า (provenance header ยังแสดง; component `cards.dq_panel` และ `metrics.data_quality_summary` ยังอยู่ ไม่ได้ต่อกับหน้า) — ผู้ใช้ตัดสินใจ 2026-10-02 | TSK-14 | `null` | false (ไม่กระทบสูตร metric) |
 
 ### Data Contract (change_type = `data contract`)
 

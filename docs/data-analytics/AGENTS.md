@@ -19,7 +19,7 @@ project: Cybersecurity Project Action Dashboard
 - **Purpose:** ตอบว่าแต่ละโครงการมี action item ทั้งหมด/เสร็จ/ค้าง/เลยกำหนดเท่าไร และ item ที่เลยกำหนดเป็นของใครกี่วัน (MET-01..MET-06 และ draft MET-07/MET-08 ใน METRIC_SPEC.md) จาก CSV รายสัปดาห์หลังประชุม
 - **Stack Summary:** DuckDB (warehouse) + Plotly Dash/Dash AG Grid (BI) + SQL files ใต้ `sql/` รันโดย `src/ingest.py` (transform) + pytest
 - **Onboarding Pointer:** quick start, การติดตั้ง และ document map อยู่ใน [README.md](README.md) (Doc Index ครบทั้ง 23 ฉบับ — ไฟล์ทุกฉบับมีแล้ว สถานะ `draft`) อ่านก่อนแก้ pipeline ครั้งแรก
-- **สถานะ (2026-10-02):** `src/ingest.py`, `src/validation.py`, `src/metrics.py`, `src/ai/`, `sql/`, `dashboard/app.py` implement แล้วและมี pytest (ดู TESTING_STRATEGY) — ยังคงห้ามรายงานว่า "ผ่าน/ทำแล้ว" ถ้ายังไม่ได้รันจริง และห้ามอ้างว่าเรียก OpenRouter จริงแล้ว (ทดสอบด้วย mocked HTTP เท่านั้น) หรือตรวจ dark theme/colorblind/AG Grid ด้วยตาแล้ว (ยังไม่ได้ตรวจ)
+- **สถานะ (2026-10-02):** `src/ingest.py`, `src/validation.py`, `src/metrics.py`, `src/ai/`, `sql/`, `dashboard/app.py` implement แล้วและมี pytest (ดู TESTING_STRATEGY) — ยังคงห้ามรายงานว่า "ผ่าน/ทำแล้ว" ถ้ายังไม่ได้รันจริง และเรียก OpenRouter จริงสำเร็จ 2 ครั้งผ่านปุ่ม Generate ของแอป (2026-10-02; โมเดล `anthropic/claude-sonnet-5`, prompt `exec-summary-v2`, บนสำเนา DB ชั่วคราว) แต่ pytest/CI ยังใช้ mocked HTTP เท่านั้น และห้ามอ้างว่าประเมินคุณภาพ (EV-01..EV-05) แล้ว หรือตรวจ dark theme/colorblind/AG Grid ด้วยตาแล้ว (ยังไม่ได้ตรวจ)
 
 ## Tech Stack
 

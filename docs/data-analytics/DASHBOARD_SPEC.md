@@ -13,7 +13,7 @@ project: Cybersecurity Project Action Dashboard
 
 เอกสารนี้เป็นแหล่งนิยาม dashboard เดียว (canonical) ของ analytics stack: dashboard ID, chart ID, filter, drill-down และ acceptance criteria เอกสารนี้ **ไม่นิยามสูตร metric ใหม่** — ตัวเลขทุกตัวอ้าง Metric ID (MET-xx, METRIC_SPEC.md) และ Query ID (Q-*, METRIC_LOGIC.md) เท่านั้น; label ยึด BUSINESS_GLOSSARY.md "Label บน dashboard"; chart type ยึด `chart_type_matrix` (CT-xx) ของ VIZ_DESIGN_SPEC.md; literacy ยึด enum `data_literacy_level` (STAKEHOLDERS.md) และ Gate Rule ใน VIZ_DESIGN_SPEC.md
 
-> **สถานะการ implement/ยืนยัน (2026-10-02):** ทั้งสามหน้า implement แล้ว; ยืนยันผ่าน Flask test client และ server จริง (page load, callbacks, project filter, no-data states) และ headless Chrome screenshot ครั้งเดียว **ไม่ได้ตรวจด้วยตา:** dark theme, colorblind mode, AG Grid; AI ใช้ได้เฉพาะ mocked HTTP (ยังไม่เคยเรียก OpenRouter จริง); CH-10 แกน 0–100%
+> **สถานะการ implement/ยืนยัน (2026-10-02):** ทั้งสามหน้า implement แล้ว; ยืนยันผ่าน Flask test client และ server จริง (page load, callbacks, project filter, no-data states) และ headless Chrome screenshot ครั้งเดียว **ไม่ได้ตรวจด้วยตา:** dark theme, colorblind mode, AG Grid; AI: pytest ใช้ mocked HTTP แต่เรียก OpenRouter จริงสำเร็จ 2 ครั้งผ่านปุ่ม Generate (All Projects และ `P01 - Network VA`, 2026-10-02; ยังไม่ได้ประเมินคุณภาพ EV-01..EV-05); CH-10 แกน 0–100%
 
 เอกสารนี้ **resolve placeholder** ที่เอกสารอื่นเคยทิ้งไว้ (D6: VIZ_DESIGN_SPEC ใช้ `DASH-01/02/03` แล้ว; เอกสารอื่นที่ยังมี `{{DASH_*}}` ต้องแทนที่ตามตาราง):
 
@@ -65,7 +65,7 @@ project: Cybersecurity Project Action Dashboard
 | CH-09 | Composition by Project (completed / open non-overdue / overdue) | `stacked_bar` | MET-02, MET-08, MET-04 | Q-BY-PROJECT | CT-02 (stacked) | intermediate | **อยู่ใน v1 (un-deferred, D4)** เป็น view ที่ผู้ใช้เปิดเอง (ไม่ใช่ค่าเริ่มต้น) ระบุ min literacy `intermediate` ที่หัว chart; "open non-overdue" = MET-08 `open_not_overdue_actions` (draft) ที่ SQL layer ไม่คำนวณใน Dash |
 | CH-10 | Completion Rate by Project (optional) | `bar` แกน 0–100% | MET-06 | Q-BY-PROJECT | CT-03 | basic | |
 | CH-11 | Project summary table | `table` (Dash AG Grid) | MET-01, MET-02, MET-03, MET-04, MET-06 | Q-BY-PROJECT | CT-09 (project summary table) | basic | คอลัมน์: Project, Total Actions, Completed, Open, Overdue, Completion Rate |
-| CH-12 | Run & validation summary | `table` | — (ไม่ใช่ metric; count จาก `ingestion_runs`, `data_quality_results`) | อ่านตรงผ่าน data access layer | `table` (basic) | basic | แสดง source file, run_id, `source_row_count` / `valid_row_count` / `invalid_row_count`, finding ต่อ `check_name` และ `rule_severity` (DATA_QUALITY "Quality Dashboards"; plan.md Phase 7); ไม่มี quality score (`null`) |
+| CH-12 | Run & validation summary (**ถอดออกจากหน้า — ผู้ใช้ตัดสินใจ 2026-10-02**; component `cards.dq_panel` และ `metrics.data_quality_summary` ยังอยู่ ไม่ได้ต่อกับหน้า) | `table` | — (ไม่ใช่ metric; count จาก `ingestion_runs`, `data_quality_results`) | อ่านตรงผ่าน data access layer | `table` (basic) | basic | แสดง source file, run_id, `source_row_count` / `valid_row_count` / `invalid_row_count`, finding ต่อ `check_name` และ `rule_severity` (DATA_QUALITY "Quality Dashboards"; plan.md Phase 7); ไม่มี quality score (`null`) |
 
 หมายเหตุ Gate: plan.md §11 อนุญาต grouped/stacked bar แต่เป็น `intermediate` ขณะที่ primary = `basic` ⇒ ค่าเริ่มต้นเป็นชุด `bar` (CH-06..08) ตามที่ VIZ_DESIGN_SPEC ตัดสินไว้ และ CH-09 เป็น view ที่ผู้ใช้เปิดเองพร้อมระบุ min literacy (ซ่อนจาก STK-01 โดยค่าเริ่มต้น)
 
@@ -108,7 +108,7 @@ project: Cybersecurity Project Action Dashboard
 
 | หัวข้อ | รายละเอียด |
 |---|---|
-| Name | Executive Summary (draft) |
+| Name | Executive Summary |
 | Purpose | สรุปสถานะจาก DuckDB เป็นข้อความร่างให้ผู้ตรวจทาน — ไม่ใช่รายงานที่อนุมัติ (REPORT_SPEC.md เป็นเจ้าของรูปแบบรายงาน RPT-02) |
 | Target User | STK-03 (`intermediate`), STK-05 Auditor/exec reviewer (`intermediate`); ไม่มี chart จึงไม่ติด Gate Rule |
 | Data Source | `executive_summaries` (อ่าน/เขียน); context ที่ส่ง OpenRouter มาจากผลของ Q-PORTFOLIO, Q-BY-PROJECT, Q-OVERDUE-DETAIL เท่านั้น (PIPELINE_SPEC PL-02) โดยใช้ `project_filter` เป็นพารามิเตอร์ `project_name`; ข้อกำหนด prompt/guardrail = AI_MODEL_SPEC.md |

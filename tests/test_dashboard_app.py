@@ -115,7 +115,7 @@ def test_td01_app_imports_and_serves(app):
     assert layout.status_code == 200
     ids = {n["props"].get("id") for n in _walk(layout.get_json()) if "props" in n}
     for need in (IDS.PROJECT_DROPDOWN, IDS.THEME_MODE, IDS.CVD_TOGGLE, IDS.COMPOSITION_TOGGLE,
-                 IDS.HEADER, IDS.DQ_PANEL, IDS.EXEC_GENERATE_BTN):
+                 IDS.HEADER, IDS.EXEC_GENERATE_BTN):
         assert need in ids
     for path in ("/overdue", "/executive-summary"):
         assert c.get(path).status_code == 200
@@ -227,13 +227,15 @@ def test_td06_chart_types_are_horizontal_bars(app):
             assert tr["type"] == "bar" and tr["orientation"] == "h"
 
 
-def test_td08_provenance_header_and_dq_panel(app, golden_db):
+def test_td08_provenance_header(app, golden_db):
     run = metrics.get_run_info(golden_db)
     tree = app.server.test_client().get("/_dash-layout").get_json()
     header = text(find(tree, IDS.HEADER))
     assert run["reference_date"] == "2026-09-15" and "2026-09-15" in header
     assert run["source_file"] in header and str(run["completed_at"]) in header
-    assert "Run & validation summary" in text(find(tree, IDS.DQ_PANEL))
+    # CH-12 "Run & validation summary" panel was removed from the page by user decision (2026-10-02)
+    assert find(tree, IDS.DQ_PANEL) is None
+    assert "Run & validation summary" not in text(tree)
 
 
 # --------------------------------------------------------------------------- T-D07

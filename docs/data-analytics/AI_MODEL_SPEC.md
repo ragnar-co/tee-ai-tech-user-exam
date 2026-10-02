@@ -15,7 +15,7 @@ project: Cybersecurity Project Action Dashboard
 
 **ขอบเขตที่ซื่อตรง:** "model" ในระบบนี้มีเพียงตัวเดียวคือ **LLM ที่ร่าง Executive Summary** อยู่หลัง abstraction `ExecutiveSummaryProvider.generate(context: dict) -> str` (plan.md §22) — **ไม่ใช่ ML เชิงทำนาย** ไม่มี training, label, train/validation/test split, feature store หรือ predictive score ทั้งนี้ตามกฎ "Do NOT build" ของ plan (ไม่มี risk score / health score / forecast) หัวข้อที่สมมติ predictive ML ระบุ `N/A` พร้อมเหตุผล และปรับเป็นสิ่งเทียบเท่าที่ใช้ได้จริง (prompt versioning, grounding, evaluation ของ draft) Provider และ model name = `null` (CON-27 ยังไม่เลือก) ตัวเลข acceptance/ต้นทุนทุกตัว = `null` พร้อม owner — ไม่มีการอนุมัติให้ส่ง context ออกนอกระบบ (GOV-AI-01)
 
-> **สถานะการ implement/ยืนยัน (2026-10-02):** implement แล้วใน `src/ai/` (`context_builder.py`, `prompt.py`, `provider.py`, `summary_service.py`) และต่อกับ dashboard หน้า `/executive-summary` ทดสอบ **ด้วย mocked HTTP เท่านั้น** (`test_ai_provider.py`, `test_ai_summary_service.py`, `test_ai_context_builder.py`, `test_ai_prompt_hardening.py`, `test_dashboard_app.py`) — **การเรียก OpenRouter จริงด้วย key จริงยังไม่เคยทำ** จึงยังไม่รู้ว่า key/guardrail ของ workspace อนุญาตโมเดลนี้ คุณภาพจริงของ draft (EV-01..EV-05) ยังไม่เคยประเมินกับโมเดลจริง ไม่มีการอนุมัติ DPO/legal
+> **สถานะการ implement/ยืนยัน (2026-10-02):** implement แล้วใน `src/ai/` (`context_builder.py`, `prompt.py`, `provider.py`, `summary_service.py`) และต่อกับ dashboard หน้า `/executive-summary` pytest ใช้ **mocked HTTP เท่านั้น** (`test_ai_provider.py, `test_ai_summary_service.py`, `test_ai_context_builder.py`, `test_ai_prompt_hardening.py`, `test_dashboard_app.py`) — **การเรียก OpenRouter จริงสำเร็จแล้ว 2 ครั้ง (2026-10-02)** ผ่าน callback Generate ของแอปเองบนสำเนา DB ชั่วคราวของไฟล์ sample — ครั้งแรก All Projects ครั้งที่สองเฉพาะ `P01 - Network VA` โดยใช้ `anthropic/claude-sonnet-5` + prompt `exec-summary-v2` latency ราว 21-25 วินาทีต่อครั้ง ได้ร่างภาษาไทย 5 ส่วน บันทึกลง `executive_summaries` (`provider='openrouter'`, `model_name='anthropic/claude-sonnet-5'`, `prompt_version='exec-summary-v2'`, `source_run_id=1`) และแสดงซ้ำหลังโหลดหน้าใหม่ ตัวเลขที่ร่างอ้างตรงกับ DB (เช่น P03 open 809 / overdue 611; P09 109/47; 96 owners ที่มี overdue) ข้อสังเกตด้านถ้อยคำ: โมเดลเคยเขียน "14,013 action_name" แทน "actions" (ชื่อ field ดิบหลุดออกมา) **ยังเป็นข้อจำกัด:** guardrail ของ workspace สำหรับโมเดลอื่นยังไม่ตรวจ (ใช้จริงเฉพาะโมเดลนี้); การรันครั้งเดียวต่อ filter ไม่ใช่การประเมินคุณภาพ — EV-01..EV-05 ยังไม่ได้รันอย่างเป็นทางการสำหรับ prompt v2 ไม่มีการอนุมัติ DPO/legal
 
 ## Enum ที่เอกสารนี้เป็นเจ้าของ
 
@@ -24,7 +24,7 @@ project: Cybersecurity Project Action Dashboard
 | value | ความหมาย |
 |---|---|
 | `production` | ผ่านการตรวจตาม Model Risk Review และอนุมัติให้ใช้งานจริง |
-| `staging` | ทดสอบกับ mocked/ข้อมูลจำลอง ยังไม่อนุมัติใช้งานจริง |
+| `staging` | ทดสอบกับ mocked/ข้อมูลจำลอง (pytest) และเรียกจริงบนสำเนา DB sample ชั่วคราว; ยังไม่อนุมัติใช้งานจริง |
 | `experimental` | อยู่ระหว่างทดลอง ไม่มี commitment |
 | `deprecated` | เลิกใช้ ต้องระบุตัวทดแทน |
 
@@ -32,7 +32,7 @@ project: Cybersecurity Project Action Dashboard
 
 | Model ID | Model Name / version | Purpose | model_status | Provider / model |
 |---|---|---|---|---|
-| MDL-01 | `executive_summary_drafter` / prompt_version = `exec-summary-v2` (ค่าคงที่ `PROMPT_VERSION` ใน `src/ai/prompt.py`, บันทึกที่ `executive_summaries.prompt_version`) | ร่างข้อความสรุปสถานะ portfolio/โครงการจาก context ที่ query จาก DuckDB เพื่อให้ผู้ตรวจทาน (STK-03, STK-05) แก้ไข — ไม่ใช่ metric และไม่ใช่รายงานที่อนุมัติ | `experimental` (bonus; มีโค้ด provider แล้วแต่ทดสอบด้วย mocked HTTP เท่านั้น และยังไม่มีการอนุมัติ DPO/legal ต่อ GOV-AI-01) | `openrouter` / `anthropic/claude-sonnet-5` (CON-27; การตัดสินใจของผู้ใช้) |
+| MDL-01 | `executive_summary_drafter` / prompt_version = `exec-summary-v2` (ค่าคงที่ `PROMPT_VERSION` ใน `src/ai/prompt.py`, บันทึกที่ `executive_summaries.prompt_version`) | ร่างข้อความสรุปสถานะ portfolio/โครงการจาก context ที่ query จาก DuckDB เพื่อให้ผู้ตรวจทาน (STK-03, STK-05) แก้ไข — ไม่ใช่ metric และไม่ใช่รายงานที่อนุมัติ | `experimental` (bonus; มีโค้ด provider แล้ว pytest ใช้ mocked HTTP เท่านั้น เรียก OpenRouter จริงสำเร็จ 2 ครั้ง (2026-10-02) แต่ยังไม่ได้ประเมิน EV-01..EV-05 และยังไม่มีการอนุมัติ DPO/legal ต่อ GOV-AI-01) | `openrouter` / `anthropic/claude-sonnet-5` (CON-27; การตัดสินใจของผู้ใช้) |
 
 ไม่มี model อื่นใน stack (ไม่มี churn / anomaly / forecast model) — AN-01/AN-02 ใน DATA_QUALITY เป็นกฎเชิงสถิติที่ยัง calibrate ไม่ได้และไม่ใช่ model ในเอกสารนี้
 
@@ -102,7 +102,7 @@ project: Cybersecurity Project Action Dashboard
 |---|---|
 | Deployment Target | on-demand ใน process ของ Dash app (ปุ่ม CP-03) → PL-02; ไม่ใช่ batch และไม่มี real-time serving แยก; provider = OpenRouter external API (ข้อมูลออกนอกระบบ ผ่านห่วงโซ่ OpenRouter -> Anthropic — ขอบเขตตาม GOV-AI-01) |
 | Configuration | env `OPENAI_API_KEY` (secret) และ `OPENAI_BASE_URL` (เช่น `https://openrouter.ai/api/v1`) ที่จำเป็น; env ทางเลือก (ไม่ใช่ secret): `AI_TIMEOUT_SECONDS` (default 60; ค่าของโค้ด ไม่ได้ calibrate) และ `AI_TOP_N` (default 10; อธิบายด้านบน) — ไม่ได้อยู่ใน `.env.example` ที่ active (เป็นบรรทัดคอมเมนต์); model slug `anthropic/claude-sonnet-5` เป็นค่าคงที่ใน code/config (ไม่ใช่ secret); เรียก OpenAI-compatible chat-completions ตรงผ่าน HTTPS จาก Python (ไม่มี `aix` CLI/subprocess; implement ด้วย `httpx` ไม่ใช้ openai SDK); ห้าม commit/ห้ามเก็บใน DB/ห้ามพิมพ์ลง log (CON-21); ไม่มี env ตัวใดตัวหนึ่ง → ปิดปุ่ม Generate Draft/แสดงข้อความตั้งค่า (T-A03) core dashboard ไม่กระทบ |
-| Operational dependency | guardrail ของ OpenRouter workspace อาจอนุญาตเฉพาะ `anthropic/claude-sonnet-5` และบล็อกโมเดลอื่น (หมายเหตุจาก reference repo) — **ยังไม่ได้ตรวจสอบกับ key ของโปรเจกต์นี้** ถือเป็น open item; ถ้าเปลี่ยนโมเดลต้องตรวจ guardrail ก่อน |
+| Operational dependency | guardrail ของ OpenRouter workspace อาจอนุญาตเฉพาะ `anthropic/claude-sonnet-5` และบล็อกโมเดลอื่น (หมายเหตุจาก reference repo) — ใช้ key ของโปรเจกต์นี้เรียก `anthropic/claude-sonnet-5` สำเร็จเมื่อ 2026-10-02 แต่ **ยังไม่ได้ตรวจพฤติกรรมกับโมเดลอื่น** ถือเป็น open item; ถ้าเปลี่ยนโมเดลต้องตรวจ guardrail ก่อน |
 | Retraining Schedule | `N/A` (ไม่มี training) — เทียบเท่า: ทบทวน prompt/guardrail ตามรอบ = `null` (calibration: ความถี่การใช้งานจริง; owner `{{DATA_STEWARD}}`) |
 | Model / Data Drift Detection | **PSI / prediction-mean drift = `N/A`** (ไม่มี feature distribution ที่ใช้ train และไม่มี prediction ตัวเลข) สิ่งที่ตรวจได้จริง: (1) provider/model เปลี่ยน — เทียบ `provider`/`model_name` ใน `executive_summaries` (2) EV-01/EV-02 ต่ำลงตามเวลา (3) context drift = ค่า `status` ใหม่ (DQ-09) หรือ schema เปลี่ยน (DQ-01/DQ-07) ซึ่ง DATA_QUALITY จับอยู่แล้ว |
 | Drift Thresholds + Alert Route | ตัวเลข threshold ทั้งหมด = `null` (calibration source: ผลประเมิน pilot; owner `{{SECURITY_TEAM_LEAD}}` + `{{DATA_STEWARD}}`) ช่องทางแจ้ง = `null` (ไม่มี scheduler/monitoring/on-call — SLA_FRESHNESS, RUNBOOK) ขั้นต่ำที่ออกแบบ: AL-04 (summary อ้าง run ที่ไม่ใช่ latest → label บน UI) และ RUNBOOK RB-07 สำหรับความล้มเหลว; **ตัวเลข+ปลายทางที่ยังเป็น `null` ถือว่ายังไม่ใช่ monitoring** — เป็น open question |
@@ -120,7 +120,7 @@ project: Cybersecurity Project Action Dashboard
 | Prompt injection | **บรรเทา ไม่ได้กำจัด:** ค่าใน context ถูกตัด control character + จำกัด 200 ตัวอักษร, ส่งเป็น JSON, system prompt มี clause GR-08 (untrusted data); ผลลัพธ์เป็น draft ที่คนตรวจทานก่อนใช้ — โมเดลยังอาจถูกชักจูงได้ (ไม่ได้ทดสอบกับโมเดลจริง) |
 | ข้อมูลที่ส่งออก | aggregate + top-N แถวที่มี `owner`/`action_name` (user decision; PDPA/residency ยังเปิด) |
 | Audit | log เท่านั้น ยังไม่ persist (ดูตาราง Deployment — known gap) |
-| ไม่ได้ทำ | การเรียก OpenRouter จริง, authentication/authorization ของ dashboard (ไม่มี — CON), rate-limit ของปุ่ม Generate |
+| ไม่ได้ทำ | การประเมิน EV-01..EV-05 อย่างเป็นทางการกับโมเดลจริง (เรียกจริงแล้ว 2 ครั้งแต่ไม่ใช่การประเมิน), authentication/authorization ของ dashboard (ไม่มี — CON), rate-limit ของปุ่ม Generate |
 
 ### Model Risk Review
 
@@ -148,7 +148,7 @@ MDL-01 ไม่ตัดสินใจกระทบลูกค้าโด�
 
 ## Open Questions
 
-1. (ปิดแล้ว) provider/model = OpenRouter / `anthropic/claude-sonnet-5` ตามการตัดสินใจของผู้ใช้ (CON-27); ไลบรารี HTTP = `httpx` — ยังเปิด: งบ/เพดานค่า API `{{PROJECT_SPONSOR}}`, guardrail ของ workspace ตรวจกับ key จริง (ยังไม่เคยเรียกจริง)
+1. (ปิดแล้ว) provider/model = OpenRouter / `anthropic/claude-sonnet-5` ตามการตัดสินใจของผู้ใช้ (CON-27); ไลบรารี HTTP = `httpx` — ยังเปิด: งบ/เพดานค่า API `{{PROJECT_SPONSOR}}`, guardrail ของ workspace สำหรับโมเดลอื่น (เรียกจริงสำเร็จเฉพาะ `anthropic/claude-sonnet-5` เมื่อ 2026-10-02)
 2. ผู้ใช้ตัดสินใจให้ส่ง `owner` (และ `action_name` ในแถว top-N) แล้ว (plan AI-02 ข้อ 4 ไม่มีเงื่อนไข) — **ยังเปิดสำหรับ `{{DPO_OR_LEGAL}}`:** PDPA classification ของ `owner`/`action_name` (GOV-OPEN-01), data residency และผู้ประมวลผลบุคคลที่สาม OpenRouter -> Anthropic, สัญญา (DPA/ไม่เทรน/retention) — ไม่มีการอ้างอนุมัติ
 3. จำนวน `top_overdue_actions` (ST-22) — ใช้ default 10 ชั่วคราว; ค่าที่ถูกต้อง `{{DATA_STEWARD}}` + `{{DPO_OR_LEGAL}}`
 4. เกณฑ์ acceptance ของ EV-01..EV-05, drift/alert threshold, ช่องทางแจ้ง, ceiling ต้นทุน และรูปแบบ `prompt_version` — owner ตามตารางด้านบน

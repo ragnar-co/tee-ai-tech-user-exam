@@ -47,7 +47,8 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
   margin-bottom: 16px; }
 .filter-group { display: flex; flex-direction: column; gap: 4px; min-width: 220px; flex: 1 1 220px; }
 .filter-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
-.radio-inline label, .check-inline label { margin-right: 12px; font-size: 13px; }
+.radio-inline label, .check-inline label { margin-right: 12px; font-size: 13px; color: var(--text); }
+.radio-inline label *, .check-inline label * { color: var(--text); }
 .project-dropdown .Select-control, .project-dropdown .Select-menu-outer,
 .project-dropdown .dash-dropdown, .dash-dropdown, .dash-dropdown-content {
   background: var(--surface); color: var(--text); border-color: var(--border); }

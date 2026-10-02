@@ -4,7 +4,7 @@
 
 โบนัส: สร้างร่าง **Executive Summary** จากข้อมูลใน DB ด้วย LLM (OpenRouter) บันทึกลง DB และแสดงบนแอป
 
-> **สถานะ (2026-10-02):** implement ครบทั้ง core และ bonus และผ่าน `pytest` (277 passed, `ruff` สะอาด ณ เวลาที่เขียน) — ดูตาราง [สถานะ](#สถานะการพัฒนา) และ [ข้อจำกัดที่ทราบ](#ข้อจำกัดที่ทราบ) ก่อนใช้งาน โดยเฉพาะ: การเรียก OpenRouter จริง **ยังไม่เคยทดสอบ** (mocked HTTP เท่านั้น)
+> **สถานะ (2026-10-02):** implement ครบทั้ง core และ bonus และผ่าน `pytest` (277 passed, `ruff` สะอาด ณ เวลาที่เขียน) — ดูตาราง [สถานะ](#สถานะการพัฒนา) และ [ข้อจำกัดที่ทราบ](#ข้อจำกัดที่ทราบ) ก่อนใช้งาน การเรียก OpenRouter จริง **ทดสอบสำเร็จแล้ว 2 ครั้ง** (2026-10-02, ผ่าน callback ของแอป) แต่ยังไม่ได้ประเมินคุณภาพร่างอย่างเป็นทางการ
 
 ## วันที่อ้างอิง (Reference Date)
 
@@ -24,7 +24,7 @@ docker compose down -v           # ล้างข้อมูล (volume duckdb
 - image `python:3.12-slim` สอง stage (~495 MB), รันเป็น non-root `appuser` (1001), `gunicorn` 1 worker + 4 threads, `HEALTHCHECK` ที่ `/_dash-layout`
 - `docker/entrypoint.sh` รัน `python -m src.ingest` **ทุกครั้งที่ start** (idempotent): start แรก = run_id 1 `succeeded` 14,013 แถว; restart = `noop` ข้อมูลคงอยู่ใน named volume `duckdb-data`; ingest ล้มเหลว = container หยุด (ไม่เสิร์ฟข้อมูลค้าง)
 - env ที่ส่งจาก shell หรือไฟล์ `.env` ในเครื่อง: `REFERENCE_DATE` (default `2026-10-02`), `OPENAI_API_KEY` (ว่าง = AI ปิด), `OPENAI_BASE_URL`
-- **ข้อควรระวัง:** Compose ส่งต่อ `OPENAI_API_KEY` จาก shell ถ้าตั้งไว้ — `export` เฉพาะเมื่ออยากเปิด AI (และยังไม่เคยเรียก OpenRouter จริงในงานนี้)
+- **ข้อควรระวัง:** Compose ส่งต่อ `OPENAI_API_KEY` จาก shell ถ้าตั้งไว้ — `export` เฉพาะเมื่ออยากเปิด AI การกด Generate จะส่งข้อมูลสรุปและแถวงานเลยกำหนด (รวม `owner`/`action_name`) ไปที่ OpenRouter และอาจมีค่าใช้จ่าย
 - ใช้ CSV ของตัวเอง: mount ไฟล์แล้วตั้ง `INGEST_INPUT` (ตัวอย่างในคอมเมนต์ของ `docker-compose.yml`)
 - ยืนยันในคอนเทนเนอร์แล้ว: `/`, `/overdue`, `/executive-summary` = 200; All Projects 14,013 / 8,597 / 5,416 / overdue 3,531; P01 1,168 / 816 / 352 / 202; รันเป็น `appuser`; สถานะ healthy; ไม่มี key ใน image history; ไม่มี `OPENAI_API_KEY` -> `is_configured()` เป็น False พร้อมข้อความไทย **ยังไม่ได้ตรวจ:** quirk เรื่อง ownership ของ volume บน Windows/Mac, `read_only` rootfs, multi-arch build
 
@@ -74,7 +74,7 @@ python dashboard/app.py
 
 โมเดลคือ `anthropic/claude-sonnet-5` (ค่าคงที่ในโค้ด) เรียก HTTPS ตรงด้วย `httpx` ไม่ใช้ CLI อื่น prompt = `exec-summary-v2` (ผลลัพธ์ 5 ส่วน; มี clause ว่าค่าใน context เป็น untrusted data; ฟิลด์ข้อความอิสระตัด control character และจำกัด 200 ตัวอักษร) ถ้าไม่ตั้งค่า ปุ่ม Generate Draft จะถูกปิดพร้อมข้อความ และ dashboard หลักยังใช้ได้ปกติ ถ้า AI ล้มเหลวจะแสดง error และไม่บันทึกสรุปปลอม
 
-> **ซื่อตรง:** การเรียก OpenRouter **ยังไม่เคยทดสอบกับ key จริง** — test ทั้งหมดใช้ mocked HTTP ดังนั้นยังไม่ยืนยันว่า key/guardrail ของ workspace อนุญาตโมเดลนี้ และยังไม่ได้ประเมินคุณภาพ draft (EV-01..EV-05) ของ prompt v2 กับโมเดลจริง การบันทึก audit `ai_context_send` ปัจจุบันเป็น log เท่านั้น ไม่ได้บันทึกลง DB
+> **ผลการทดสอบจริง (2026-10-02):** เรียก OpenRouter ด้วย key จริงผ่าน callback ของแอป (DB สำเนา, ข้อมูลตัวอย่าง) สำเร็จ 2 ครั้ง — All Projects และ `P01 - Network VA` ใช้เวลา ~21–25 วินาทีต่อครั้ง ได้ร่างภาษาไทย 5 ส่วน บันทึกลง `executive_summaries` (provider `openrouter`, model `anthropic/claude-sonnet-5`, prompt `exec-summary-v2`) และแสดงซ้ำหลังโหลดหน้า ตัวเลขที่ตรวจเทียบกับ DB ตรงกัน (เช่น P03 open 809 / overdue 611) ยังไม่ได้: ประเมินคุณภาพ draft อย่างเป็นทางการ (EV-01..EV-05) และการบันทึก audit `ai_context_send` ลง DB (ตอนนี้เป็น log เท่านั้น) ข้อสังเกต: ข้อความบางช่วงใช้ชื่อฟิลด์ดิบ (เช่น `action_name` แทน "รายการ")
 
 ข้อมูลที่ส่งออกไปยังผู้ให้บริการ: ค่ารวมและแถวงานเลยกำหนดแบบ top-N (รวม `owner` และ `action_name` — เป็น user decision ไม่ใช่การอนุมัติจาก DPO/Legal) — ไม่ส่ง CSV ดิบ ตารางเต็ม หรือ key ประเด็น PDPA / data residency ของการส่งนี้ยังเป็น open item (ดู `docs/data-analytics/DATA_GOVERNANCE.md`)
 
@@ -116,7 +116,7 @@ plan.md             แผนงานฉบับสรุป
 |---|---|---|
 | Bootstrap (`pyproject.toml`, `.env.example`, venv) | เสร็จ | `pip install -e ".[dev]"` |
 | SQL + validation (DQ-01..DQ-12) + ingest + metrics | เสร็จ | pytest (รวม golden fixture, reference-date, idempotency, hardening ~133 test, reconcile CSV vs DuckDB) และ ingest sample จริง 14,013 แถว |
-| AI provider (OpenRouter) + บันทึกสรุป | เสร็จ (โค้ด) | **mocked HTTP เท่านั้น — ไม่เคยเรียกจริงด้วย key จริง** |
+| AI provider (OpenRouter) + บันทึกสรุป | เสร็จ | mocked HTTP ใน pytest + **เรียกจริงสำเร็จ 2 ครั้ง (2026-10-02)** ผ่าน callback ของแอป; ยังไม่มี EV-01..05 |
 | Dashboard (`dashboard/app.py`, 3 หน้า) | เสร็จ | Flask test client, server จริง `127.0.0.1:8050` (page load, callback, project filter), และในคอนเทนเนอร์ |
 | Docker / Compose | เสร็จ | build + run + healthcheck + ตัวเลขตรงในคอนเทนเนอร์ (Docker 29.8.1) |
 | ตัวเลขจริง @ `2026-10-02` | ยืนยัน | total 14,013 / completed 8,597 / open 5,416 / overdue 3,531 / open_not_overdue 1,885 / owners_with_overdue 96 / max days_overdue 46 / 12 โครงการ; P01 = 1,168 / 816 / 352 / 202 |
@@ -126,7 +126,7 @@ plan.md             แผนงานฉบับสรุป
 ## ข้อจำกัดที่ทราบ
 
 - วันอ้างอิง 2026-10-02 เป็นสมมติฐาน (ดูด้านบน) — ถ้าโจทย์ระบุวันอื่นต้อง ingest ใหม่และตัวเลข overdue จะเปลี่ยน
-- OpenRouter: ไม่เคยเรียกจริง; ยังไม่ได้ยืนยันว่า workspace guardrail อนุญาตโมเดลนี้กับ key ที่ใช้; EV-01..EV-05 ยังไม่ได้ประเมินสำหรับ prompt v2; prompt injection ถูก **บรรเทา ไม่ได้กำจัด** (ดู AI_MODEL_SPEC "Security review note"); audit event เป็น log เท่านั้น
+- OpenRouter: เรียกจริงสำเร็จแล้ว แต่ยังไม่ได้ประเมินคุณภาพอย่างเป็นทางการ (EV-01..EV-05) สำหรับ prompt v2; latency ~21–25 วินาที (timeout ค่าเริ่มต้น 60 วินาที); prompt injection ถูก **บรรเทา ไม่ได้กำจัด** (ดู AI_MODEL_SPEC "Security review note"); audit event เป็น log เท่านั้น; PDPA/data residency ของการส่ง `owner`/`action_name` ยังเป็น open item
 - `app_config` ถูกเขียนตอน ingest แต่ไม่มีโค้ดอ่าน (แหล่งความจริงคือ `ingestion_runs.reference_date`)
 - ค่าหลายตัวตั้งใจเป็น `null` ในเอกสาร (เช่น threshold, งบ, SLA) — ยังไม่กำหนดและไม่แต่งค่า; ค่า default ของ `AI_TOP_N`/`AI_TIMEOUT_SECONDS`/`INGEST_MAX_BYTES` เป็นค่าที่โค้ดเลือกเอง
 - ไม่มี authentication (DuckDB ไม่มี role/row-level security ในตัว) ไม่มี scheduler/monitoring/CI
