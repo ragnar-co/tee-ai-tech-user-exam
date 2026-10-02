@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cybersecurity-action-dashboard"
+version = "0.1.0"
+description = "Cybersecurity Project Action Dashboard (DuckDB + Plotly Dash)"
+requires-python = ">=3.11"
+# Version pins are intentionally unset (DDD: version = null, calibrated later); lower bounds only.
+dependencies = [
+  "duckdb>=1.1",
+  "dash>=3.0",
+  "plotly>=6.0",
+  "dash-ag-grid>=31.0",
+  "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+prod = ["gunicorn>=22.0"]
+
+[tool.setuptools.packages.find]
+include = ["src*", "dashboard*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "sample: runs against src/tee_cybersecurity_actions_mock.csv",
+  "unit: unit test",
+  "integration: integration test",
+]
+
+[tool.ruff]
+line-length = 100

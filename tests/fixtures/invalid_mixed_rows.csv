@@ -1,0 +1,9 @@
+action_id,project_name,action_name,owner,due_date,status
+,P01 - Alpha,Synthetic 1 empty id,Owner-001,2026-09-14,todo
+X001,P01 - Alpha,Synthetic 2 dup,Owner-001,2026-09-14,todo
+X001,P01 - Alpha,Synthetic 3 dup,Owner-002,2026-09-15,todo
+X002,,Synthetic 4 empty project,Owner-001,2026-09-14,todo
+X003,P01 - Alpha,Synthetic 5 bad date,Owner-001,2026-02-30,todo
+X004,P01 - Alpha,Synthetic 6 ok,Owner-001,2026-09-14,todo
+X005,P01 - Alpha,Synthetic 7 ok,Owner-002,2026-09-20,done
+X006,P01 - Alpha,Synthetic 8 two problems,,2026-09-14,

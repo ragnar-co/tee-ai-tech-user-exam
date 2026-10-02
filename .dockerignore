@@ -1,0 +1,30 @@
+.git
+.gitignore
+.venv
+venv
+__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+
+# secrets and local state
+.env
+.env.*
+!.env.example
+data/*.duckdb
+data/*.duckdb.wal
+
+# not needed at runtime
+tests/
+docs/
+ddd/
+plan.md
+README.md
+.claude/
+.vscode/
+.idea/
+Dockerfile
+docker-compose*.yml

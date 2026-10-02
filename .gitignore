@@ -1,0 +1,35 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Test / lint caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets (keep the template)
+.env
+.env.*
+!.env.example
+
+# DuckDB database is rebuilt from the CSV (python -m src.ingest); never commit it
+data/*.duckdb
+data/*.duckdb.wal
+data/*.duckdb.tmp
+!data/.gitkeep
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Local tooling
+.claude/
+*.log

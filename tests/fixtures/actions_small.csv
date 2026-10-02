@@ -1,0 +1,13 @@
+action_id,project_name,action_name,owner,due_date,status
+A001,P01 - Alpha,ทบทวนนโยบายความปลอดภัย / สาขา BR-001,Owner-001,2026-09-14,todo
+A002,P01 - Alpha,Synthetic action A002,Owner-002,2026-09-15,todo
+A003,P01 - Alpha,Synthetic action A003,Owner-001,2026-09-16,in_progress
+A004,P01 - Alpha,Synthetic action A004,Owner-003,2026-08-01,done
+A005,P01 - Alpha,Synthetic action A005,Owner-002,2026-09-05,in_progress
+B001,P02 - Beta,Synthetic action B001,Owner-001,2026-09-20,done
+B002,P02 - Beta,Synthetic action B002,Owner-003,2026-07-18,todo
+B003,P02 - Beta,Synthetic action B003,Owner-002,2026-09-12,done
+B004,P02 - Beta,Synthetic action B004,Owner-003,2026-09-15,in_progress
+C001,P03 - Gamma,Synthetic action C001,Owner-001,2026-09-13,todo
+C002,P03 - Gamma,Synthetic action C002,Owner-002,2026-07-18,done
+C003,P03 - Gamma,Synthetic action C003,Owner-003,2026-09-12,in_progress

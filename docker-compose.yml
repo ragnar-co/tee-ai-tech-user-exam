@@ -1,0 +1,31 @@
+# docker compose up --build   ->  http://localhost:8050
+# Secrets come from your shell or a local .env file (never commit it); see .env.example.
+services:
+  dashboard:
+    build:
+      context: .
+      target: runner
+    image: cybersecurity-action-dashboard:latest
+    ports:
+      - "${HOST_PORT:-8050}:8050"
+    environment:
+      # Fixed reference date used for every "overdue" calculation (stored per ingest run).
+      REFERENCE_DATE: ${REFERENCE_DATE:-2026-10-02}
+      # Optional AI Executive Summary (OpenRouter). Empty key = Generate Draft button disabled.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://openrouter.ai/api/v1}
+    volumes:
+      - duckdb-data:/app/data
+      # To load your own weekly CSV instead of the bundled sample:
+      #   - ./my_actions.csv:/data/actions.csv:ro
+      # and set INGEST_INPUT=/data/actions.csv under environment.
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8050/_dash-layout', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+volumes:
+  duckdb-data:
